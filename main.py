@@ -262,10 +262,13 @@ y = np.array([data.loc[:,'Survived']])
 
 x1 = np.array(data.loc[:,'Pclass'])
 x2 = np.array(data.loc[:,'Sex'])
-x3 = np.array(data.loc[:,'Age'])
+x3 = np.array(data.loc[:,'Age'])  # has NAN
 x4 = np.array(data.loc[:,'SibSp'])
 x5 = np.array(data.loc[:,'Parch'])
 x6 = np.array(data.loc[:,'Fare'])
+
+x7 = np.array(data.loc[:,'Name'])
+x8 = np.array(data.loc[:,'Embarked'])  # has NAN
 
 
 x1 = normalizer(x1)
@@ -290,21 +293,70 @@ x3[x3 == 0] = mean
 x3 = normalizer(x3)
 
 
+
+
+
+x8[x8 == 'S'] = 1
+x8[x8 == 'C'] = 2
+x8[x8 == 'Q'] = 3
+
+f = pd.isnull(x8)
+c = []
+for i in range(len(f)) :
+    if f[i] == True:
+        c.append(i)
+for i in c:
+    x8[i] = 0
+mean = np.sum(x8) / (m - len(c))
+x8[x8 == 0] = mean
+x8 = normalizer(x8)
+
+
+
+
+
+for i in range(len(x7)):
+    if "Mr." in x7[i]:
+        x7[i] = 1
+    elif "Mrs." in x7[i]:
+        x7[i] = 2
+    elif "Miss." in x7[i]:
+        x7[i] = 3
+    elif "Master." in x7[i]:
+        x7[i] = 4
+    elif "Dr." in x7[i]:
+        x7[i] = 5
+    else :
+        # print(x7[i])
+        x7[i] = 6
+
+x7 = normalizer(x7)
+
 #x7 = Name{
 # Mr.
 # Mrs.
 # Miss.
-# Master
+# Master.
 # Dr.
-# Lady. (Lucille Christiana Sutherland) ("Mrs Morgan")
-# Ms. Encarnacion
-# Sir. Cosmo Edmund ("Mr Morgan")
+# Lady. (Lucille Christiana Sutherland) ("Mrs Morgan")    #1
+# Ms. Encarnacion                                         #1
+# Sir. Cosmo Edmund ("Mr Morgan")                         #1
+# Don.                                                    #1
+# Rev.                                                    #6
+# Mme.                                                    #1
+# Ms.                                                     #1
+# Major.                                                  #2
+# Gordon.                                                 #2
+# Mlle.                                                   #2
+# Col.                                                    #2
+# Capt.                                                   #1
+# Countess.                                               #1
+# Jonkheer.                                               #1
 # }
 
-# x8 = Embarked {
-# S C Q    
-# }
+
 x = np.vstack((x1, x2, x3, x4, x5, x6))
+# x = np.vstack((x1, x2, x3, x4, x5, x6, x7, x8))
 # print(x.shape)
 
 
@@ -318,7 +370,7 @@ m = Y_train.shape[1]
 # data = pd.read_csv("./datasets/test.csv")
 # print(data.shape)
 
-parameters = trainFunction(X_train, Y_train, 0.05, 1000, m, False)
+parameters = trainFunction(X_train, Y_train, 0.003, 1000, 128, False)
 
 
 def pred(parameters, X, Y_train):
@@ -371,3 +423,14 @@ def pred2(parameters, X, Y_train):
     print(np.sum(g))
 
 pred(parameters, x, Y_train)
+
+
+
+""" Results :
+8 features
+m 0.05 1000
+80%
+
+6 features
+79%
+"""
