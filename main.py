@@ -16,10 +16,8 @@ def normalizer(x):
     x = (x * m) / (np.sum(x ** 2))
     return x
 
-def reluDerivative(x):
-    x[x<=0] = 0
-    x[x>0] = 1
-    return x
+def ReLu(x):
+    return np.maximum(0, x)
 
 def sigmoid(z):
     x = tf.placeholder(tf.float32, name = 'x')
@@ -70,10 +68,6 @@ def random_mini_batches(X, Y, mini_batch_size = 64, seed = 0):
 
 
 
-
-
-
-
 def trainFunction(X_train, Y_train, learning_rate = 0.0001,
           num_epochs = 1500, minibatch_size = 32, print_cost = True):
 
@@ -96,11 +90,8 @@ def trainFunction(X_train, Y_train, learning_rate = 0.0001,
     # using Xavier Initialization for weights
     W1 = tf.get_variable("W1", [1, n_x], initializer = tf.contrib.layers.xavier_initializer(seed = 1))
 
-
-    # Z3 = forward_propagation(X, parameters)
     Z1 = tf.add(tf.matmul(W1, X) , b1)
 
-    # cost = compute_cost(Z1, Y)
     cost = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits = Z1,  labels = Y))
 
 
@@ -173,13 +164,19 @@ def trainFunction2(X_train, Y_train, learning_rate = 0.0001,
 
     # parameters = initialize_parameters()
     tf.set_random_seed(1)
-    b1 = tf.get_variable("b1", [4, 1], initializer = tf.zeros_initializer())
-    b2 = tf.get_variable("b2", [2, 1], initializer = tf.zeros_initializer())
-    b3 = tf.get_variable("b3", [1, 1], initializer = tf.zeros_initializer())
+
+    n1 = 32
+    n2 = 32
+    n3 = 16
+    b1 = tf.get_variable("b1", [n1, 1], initializer = tf.zeros_initializer())
+    b2 = tf.get_variable("b2", [n2, 1], initializer = tf.zeros_initializer())
+    b3 = tf.get_variable("b3", [n3, 1], initializer = tf.zeros_initializer())
+    b4 = tf.get_variable("b4", [1, 1], initializer = tf.zeros_initializer())
     # using Xavier Initialization for weights
-    W1 = tf.get_variable("W1", [4, n_x], initializer = tf.contrib.layers.xavier_initializer(seed = 1))
-    W2 = tf.get_variable("W2", [2, 4], initializer = tf.contrib.layers.xavier_initializer(seed = 1))
-    W3 = tf.get_variable("W3", [1, 2], initializer = tf.contrib.layers.xavier_initializer(seed = 1))
+    W1 = tf.get_variable("W1", [n1, n_x], initializer = tf.contrib.layers.xavier_initializer(seed = 1))
+    W2 = tf.get_variable("W2", [n2, n1], initializer = tf.contrib.layers.xavier_initializer(seed = 1))
+    W3 = tf.get_variable("W3", [n3, n2], initializer = tf.contrib.layers.xavier_initializer(seed = 1))
+    W4 = tf.get_variable("W4", [1, n3], initializer = tf.contrib.layers.xavier_initializer(seed = 1))
 
 
     # Z3 = forward_propagation(X, parameters)
@@ -188,12 +185,14 @@ def trainFunction2(X_train, Y_train, learning_rate = 0.0001,
     Z2 = tf.add(tf.matmul(W2, A1) , b2)
     A2 = tf.nn.relu(Z2)   
     Z3 = tf.add(tf.matmul(W3, A2) , b3)
+    A3 = tf.nn.relu(Z3)   
+    Z4 = tf.add(tf.matmul(W4, A3) , b4)
 
-    # cost = compute_cost(Z1, Y)
-    cost = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits = Z3,  labels = Y))
+    cost = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits = Z4,  labels = Y))
 
 
     optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(cost)
+    # optimizer2 = tf.train.AdamOptimizer(learning_rate=learning_rate / 80).minimize(cost)
     # optimizer = tf.train.GradientDescentOptimizer(learning_rate=learning_rate).minimize(cost)
     
     init = tf.global_variables_initializer() # Initialize all the variables
@@ -209,15 +208,14 @@ def trainFunction2(X_train, Y_train, learning_rate = 0.0001,
                 (minibatch_X, minibatch_Y) = minibatch
                 _ , minibatch_cost = session.run([optimizer, cost], feed_dict={X: minibatch_X, Y: minibatch_Y})
                 epoch_cost += minibatch_cost / n_minibatches
-                # epoch_cost += np.sum(minibatch_cost) / n_minibatches
-                # epoch_cost += np.sum(minibatch_cost) / minibatch_cost.shape[1]
+                # epoch_cost += minibatch_cost / minibatch_cost.shape[1]
 
-            
-            if print_cost == True:
-                if i % 100 == 0:
-                    print ("Cost after epoch %i: %f" % (i, epoch_cost))
-                if i % 5 == 0:
-                    costs.append(epoch_cost)
+                if print_cost == True:
+                    if i % 100 == 0:
+                        print ("Cost after epoch %i: %f" % (i, epoch_cost))
+                    if i % 5 == 0:
+                        costs.append(epoch_cost)
+      
             
         
         # plot the cost
@@ -235,7 +233,9 @@ def trainFunction2(X_train, Y_train, learning_rate = 0.0001,
             "W2": W2,
             "b2": b2,
             "W3": W3,
-            "b3": b3
+            "b3": b3,
+            "W4": W4,
+            "b4": b4
         }
         parameters = session.run(parameters)
 
@@ -370,7 +370,9 @@ m = Y_train.shape[1]
 # data = pd.read_csv("./datasets/test.csv")
 # print(data.shape)
 
-parameters = trainFunction(X_train, Y_train, 0.003, 1000, 128, False)
+
+# TODO TODO TODO TODO TODO TODO TODO RUN MODEL HERE TODO TODO TODO TODO TODO TODO TODO TODO TODO
+parameters = trainFunction2(X_train, Y_train, 0.008, 10000, m, True)
 
 
 def pred(parameters, X, Y_train):
@@ -405,13 +407,17 @@ def pred2(parameters, X, Y_train):
     b2 = parameters['b2']
     W3 = parameters['W3']
     b3 = parameters['b3']
+    W4 = parameters['W4']
+    b4 = parameters['b4']
 
     Z1 = np.dot(W1, X) + b1
-    A1 = reluDerivative(Z1)         
+    A1 = ReLu(Z1)         
     Z2 = np.dot(W2, A1) + b2
-    A2 = reluDerivative(Z2) 
+    A2 = ReLu(Z2) 
     Z3 = np.dot(W3, A2) + b3
-    Y = sigmoid(Z3)[0]
+    A3 = ReLu(Z3) 
+    Z4 = np.dot(W4, A3) + b4
+    Y = sigmoid(Z4)[0]
     Y = np.around(Y)
     Y_train = Y_train[0]
     Y_train = Y_train.astype(int)
@@ -421,8 +427,11 @@ def pred2(parameters, X, Y_train):
     g = np.subtract(Y, Y_train)
     g = abs(g)
     print(np.sum(g))
+    print("Train Accuracy = " + str(1 - (np.sum(g)) / m))
 
-pred(parameters, x, Y_train)
+
+# TODO TODO TODO TODO TODO TODO TODO PREDICT MODEL HERE TODO TODO TODO TODO TODO TODO TODO TODO TODO
+pred2(parameters, x, Y_train)
 
 
 
@@ -433,4 +442,13 @@ m 0.05 1000
 
 6 features
 79%
+
+4layer
+n_x = 8
+83%
+
+4layer
+n_x = 8
+learning rate = 0.008
+90%
 """
