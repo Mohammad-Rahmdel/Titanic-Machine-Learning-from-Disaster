@@ -67,7 +67,7 @@ def random_mini_batches(X, Y, mini_batch_size = 64, seed = 0):
 
 
 def trainFunction(X_train, Y_train, learning_rate = 0.0001,
-          num_epochs = 1500, minibatch_size = 32, print_cost = True, n_l=1):
+          num_epochs = 1500, minibatch_size = 32, print_cost = True, n_l = 1, lambd=0.0, keep_prob=1.0):
     # n_l = number of hidden layer
 
     ops.reset_default_graph()                         # to be able to rerun the model without overwriting tf variables
@@ -113,10 +113,15 @@ def trainFunction(X_train, Y_train, learning_rate = 0.0001,
     A["0"] = X
     for i in range(1, n_l):
         Z[str(i)] = tf.add(tf.matmul(parameters["W" + str(i)], A[str(i - 1)]) , parameters["b" + str(i)])
-        A[str(i)] = tf.nn.relu(Z[str(i)])     
+        A[str(i)] = tf.nn.relu(Z[str(i)])   
+        A[str(i)] = tf.nn.dropout(A[str(i)], keep_prob)
+
     Z[str(n_l)] = tf.add(tf.matmul(parameters["W" + str(n_l)], A[str(n_l - 1)]) , parameters["b" + str(n_l)])
 
-    cost = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits = Z[str(n_l)],  labels = Y))
+    cost = tf.nn.sigmoid_cross_entropy_with_logits(logits = Z[str(n_l)],  labels = Y)
+    for i in range(1, n_l + 1):
+        cost += lambd * tf.nn.l2_loss(parameters["W" + str(i)])
+    cost = tf.reduce_mean(cost)
 
 
     optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(cost)
@@ -307,7 +312,7 @@ m = Y_train.shape[1]
 
 n_l = 6
 # TODO TODO TODO TODO TODO TODO TODO RUN MODEL HERE TODO TODO TODO TODO TODO TODO TODO TODO TODO
-parameters = trainFunction(X_train, Y_train, 0.001, 10000, m, True, n_l)
+parameters = trainFunction(X_train, Y_train, 0.008, 5000, m, True, n_l, 0.0001, 0.9)
 
 
 
@@ -362,17 +367,26 @@ def output(parameters):
 
     # print(Y_hat.shape)
     # print(Y_hat)
+    data = pd.read_csv("./datasets/answer.csv")
+    Y = np.array(data.loc[:,'survived']) 
+    Y = Y[891:]
+
+    g = np.subtract(Y, Y_hat)
+    g = abs(g)
+    print(np.sum(g))
+    m = 418
+    print("Test Accuracy = " + str(1 - (np.sum(g)) / m))
 
 
-    data = pd.read_csv("./datasets/test.csv")
-    id = np.array(data.loc[:,'PassengerId'])
-    output = np.stack((id, Y_hat))
-    # output = np.transpose(output)
-    output = output.astype(int)
-    # print(output)
-    df = pd.DataFrame({"PassengerId" : output[0], "Survived" : output[1]})
-    df.to_csv("foo.csv", index=False)
-    # np.savetxt("foo.csv", output, delimiter=",", header="PassengerId,B", comments="")
+    # data = pd.read_csv("./datasets/test.csv")
+    # id = np.array(data.loc[:,'PassengerId'])
+    # output = np.stack((id, Y_hat))
+    # # output = np.transpose(output)
+    # output = output.astype(int)
+    # # print(output)
+    # df = pd.DataFrame({"PassengerId" : output[0], "Survived" : output[1]})
+    # df.to_csv("foo.csv", index=False)
+    # # np.savetxt("foo.csv", output, delimiter=",", header="PassengerId,B", comments="")
     
 
 output(parameters)
@@ -401,4 +415,24 @@ n_x = 8
 learning rate = 0.008
 train accuracy = 96%
 test accuracy = 72%
+
+
+
+number of epochs = 10000
+lambda=0.001
+learning rate = 0.008
+Train Accuracy = 0.923
+Test Accuracy = 0.564
+
+
+number of epochs = 10000
+lambda=0.0001
+learning rate = 0.008
+Train Accuracy = 0.9539842873176206
+Test Accuracy = 0.5502392344497608
+
+number of epochs = 100000
+learning rate = 0.008
+Train Accuracy = 0.7991021324354658
+Test Accuracy = 0.6483253588516746
 """
