@@ -1,9 +1,13 @@
 import numpy as np
+import math
 import pandas as pd
 import seaborn as sns
 import numpy as np
+import tensorflow as tf
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import StandardScaler, Imputer 
+from sklearn.linear_model import LogisticRegression
+from sklearn.svm import SVC
 
 
 import os
@@ -249,3 +253,137 @@ def data_manipulation(dataset):
         return x
     else :
         print("WRONG INPUT!")
+
+
+
+
+
+
+def data_visulization():
+    data = pd.read_csv("./datasets/train.csv")
+    # data.info()
+    sns.heatmap(data.isnull(),yticklabels=False, cbar=False, cmap='YlGnBu')
+
+    sns.countplot(x='Survived',hue='Pclass',data=data)
+    sns.distplot(data['Age'].dropna(), kde=False, bins=30)
+    data['Fare'].plot.hist(bins=40, figsize=(10,4))
+    sns.boxplot(x='Pclass', y='Age', data=data)
+
+
+    def impute_age(cols):
+        Age=cols[0]
+        Pclass=cols[1]
+        
+        if pd.isnull(Age):
+            if Pclass==1:
+                return 37
+            elif Pclass==2:
+                return 29
+            else:
+                return 24
+        else:
+            return Age
+
+
+    data['Age']=data[['Age', 'Pclass']].apply(impute_age, axis=1)
+    sns.heatmap(data.isnull(), yticklabels=False, cbar=False, cmap='YlGnBu')
+    
+    data.drop('Cabin', axis=1, inplace=True)
+
+    sns.heatmap(data.isnull(), yticklabels=False, cbar=False, cmap='YlGnBu')
+
+    data.dropna(inplace=True) #Dropping null values
+
+
+    sex=pd.get_dummies(data['Sex'], drop_first=True)
+    embark=pd.get_dummies(data['Embarked'], drop_first=True)
+    classes=pd.get_dummies(data['Pclass'])
+    data=pd.concat([data,sex,embark,classes], axis=1)
+    data.drop(['Pclass', 'Sex', 'Embarked', 'Name', 'Ticket'], axis=1, inplace=True)
+    # print(data.head())
+    # sns.heatmap(data.corr(), annot=True)
+
+    # del data['Cabin']
+    # del data['Ticket']
+    # del data['PassengerId']
+    # data = data.replace({'male': 0, 'female': 1})
+    # data = data.replace({'S': 0, 'C': 1, 'Q': 2})
+    # data = data.replace({'Mrs.': 1, 'Miss.': 2}, regex=True)
+    # data = data.replace({'Mr.': 0}, regex=True)
+    # for i in range(len(data['Name'])):
+    #     if isinstance(data['Name'][i], str):
+    #         data['Name'][i] = 3
+    # data = data.fillna(data.mean())
+
+    return data
+
+def test_pre():
+    test=pd.read_csv('./datasets/test.csv')
+    sns.heatmap(test.isnull(),yticklabels=False, cbar=False, cmap='YlGnBu')
+    sns.boxplot(x='Pclass', y='Age', data=test)
+
+    def impute_age2(cols):
+        Age=cols[0]
+        Pclass=cols[1]
+        
+        if pd.isnull(Age):
+            if Pclass==1:
+                return 42
+            elif Pclass==2:
+                return 26
+            else:
+                return 24
+        else:
+            return Age
+    test['Age']=test[['Age', 'Pclass']].apply(impute_age2, axis=1)
+
+
+    imputer = Imputer(missing_values = 'NaN', strategy = 'mean', axis = 0)
+    imputer = imputer.fit(test.iloc[:, 8:9])
+    test.iloc[:, 8:9] = imputer.transform(test.iloc[:, 8:9])
+    sns.heatmap(test.isnull(), yticklabels=False, cbar=False, cmap='YlGnBu')
+
+    test.drop('Cabin', axis=1, inplace=True)
+
+    sns.heatmap(test.isnull(), yticklabels=False, cbar=False, cmap='YlGnBu')
+
+
+    sex2=pd.get_dummies(test['Sex'], drop_first=True)
+    embark2=pd.get_dummies(test['Embarked'], drop_first=True)
+    pclasses=pd.get_dummies(test['Pclass'])
+    test=pd.concat([test,sex2,embark2,pclasses], axis=1)
+    Passenger_id = test.iloc[:,0]
+    test.drop(['PassengerId', 'Pclass', 'Sex', 'Embarked', 'Name', 'Ticket'], axis=1, inplace=True)
+    return test
+
+
+train = data_visulization()
+test = test_pre()
+
+x_train=train.iloc[:,2:]
+y_train=train.iloc[:,0:1]
+x_test=test.iloc[:,:]
+
+
+logisticReg=LogisticRegression()
+logisticReg.fit(x_train,y_train)
+
+y_pred= logisticReg.predict(x_test)
+accuracy = round(logisticReg.score(x_train, y_train) * 100, 2)
+print(accuracy)
+
+
+ranFor = RandomForestClassifier(n_estimators = 70)
+ranFor.fit(x_train,y_train)
+y_pred2= ranFor.predict(x_test)
+accuracy2 =round(ranFor.score(x_train, y_train)*100,2)
+print(accuracy2)
+
+
+
+svc=SVC()
+svc.fit(x_train, y_train)
+y_pred3=svc.predict(x_test)
+accuracy3=round(svc.score(x_train, y_train)*100,2)
+print(accuracy3)
+
