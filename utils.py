@@ -9,6 +9,9 @@ from sklearn.preprocessing import StandardScaler, Imputer
 from sklearn.impute import SimpleImputer
 from sklearn.linear_model import LogisticRegression
 from sklearn.svm import SVC
+import warnings
+
+
 
 
 import os
@@ -72,66 +75,6 @@ def normalizer(x):
     return x
 
 
-def preprocessing():
-    data = pd.read_csv("./datasets/train.csv")
-    # data.info()
-    del data['Cabin']
-    del data['Ticket']
-    del data['PassengerId']
-    data = data.replace({'male': 0, 'female': 1})
-    data = data.replace({'S': 0, 'C': 1, 'Q': 2})
-    data = data.replace({'Mrs.': 1, 'Miss.': 2}, regex=True)
-    data = data.replace({'Mr.': 0}, regex=True)
-    for i in range(len(data['Name'])):
-        if data['Name'][i] != 0 and data['Name'][i] != 1 and data['Name'][i] != 2 :
-            data.loc[i,'Name'] = 3
-
-    data = data.fillna(data.mean())
-
-    # sns.heatmap(data.corr(), annot=True)
-
-    # for i in range(1, data.shape[1]):
-    #     data.iloc[:,i] = normalizer(data.iloc[:,i])
-
-    X = data.iloc[:,1:9]
-    # Y = data.iloc[:,0]
-    Y = np.array([data.loc[:,'Survived']])
-    
-    # print(data.head(20))
-    sc = StandardScaler()
-    X = sc.fit_transform(X)
-    X = np.transpose(X)
-
-    return X, Y
-
-
-
-
-
-def test_manipulation():
-    data = pd.read_csv("./datasets/test.csv")
-    # m = data.shape[0]
-    del data['Cabin']
-    del data['Ticket']
-    del data['PassengerId']
-    data = data.replace({'male': 0, 'female': 1})
-    data = data.replace({'S': 0, 'C': 1, 'Q': 2})
-    data = data.replace({'Mrs.': 1, 'Miss.': 2}, regex=True)
-    data = data.replace({'Mr.': 0}, regex=True)
-    for i in range(len(data['Name'])):
-        if data['Name'][i] != 0 and data['Name'][i] != 1 and data['Name'][i] != 2 :
-            data.loc[i,'Name'] = 3
-
-    data = data.fillna(data.mean())
-    X = data
-    sc = StandardScaler()
-    X = sc.fit_transform(X)
-    X = np.transpose(X)
-    return X
-
-# test_manipulation()
-
-
 
 def train_visulization():
     data = pd.read_csv("./datasets/train.csv")
@@ -177,18 +120,6 @@ def train_visulization():
     # print(data.head())
     # sns.heatmap(data.corr(), annot=True)
 
-    # del data['Cabin']
-    # del data['Ticket']
-    # del data['PassengerId']
-    # data = data.replace({'male': 0, 'female': 1})
-    # data = data.replace({'S': 0, 'C': 1, 'Q': 2})
-    # data = data.replace({'Mrs.': 1, 'Miss.': 2}, regex=True)
-    # data = data.replace({'Mr.': 0}, regex=True)
-    # for i in range(len(data['Name'])):
-    #     if isinstance(data['Name'][i], str):
-    #         data['Name'][i] = 3
-    # data = data.fillna(data.mean())
-
     return data
 
 
@@ -231,6 +162,7 @@ def train_preprocessing():
     data=pd.concat([data, sex, embark, classes], axis=1)
     
     data.drop(['Pclass', 'Sex', 'Embarked'], axis=1, inplace=True)
+    # data.drop(['Name'], axis=1, inplace=True)
     train = data
     return train
 
@@ -296,15 +228,17 @@ def test_preprocessing():
     test['Age']=test[['Age', 'Pclass']].apply(impute_age, axis=1)
 
 
-    print(test.head())
-    imputer = SimpleImputer(missing_values = 'NaN', strategy = 'mean') #fixing Fare missing values
-    imputer = imputer.fit(test.iloc[:, 8:9])
-    test.iloc[:, 8:9] = imputer.transform(test.iloc[:, 8:9])
+    # print(test.head())
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        imputer = Imputer(missing_values = 'NaN', strategy = 'mean') #fixing Fare missing values
+        imputer = imputer.fit(test.iloc[:, 8:9])
+        test.iloc[:, 8:9] = imputer.transform(test.iloc[:, 8:9])
     
 
     del test['Cabin']
     del test['Ticket']
-    Passenger_id = test.iloc[:,0]
+    # Passenger_id = test.iloc[:,0]
     del test['PassengerId']
 
     test = test.replace({'Mrs.': 1, 'Miss.': 2}, regex=True)
@@ -320,42 +254,8 @@ def test_preprocessing():
     test=pd.concat([test,sex,embark,classes], axis=1)
 
     test.drop(['Pclass', 'Sex', 'Embarked'], axis=1, inplace=True)
+    # test.drop(['Name'], axis=1, inplace=True)
     
     return test
 
-
-
-# train = train_preprocessing()
-test = test_preprocessing()
-
-
-# print(train.head())
-# print(test.head())
-
-# x_train=train.iloc[:,2:]
-# y_train=train.iloc[:,0:1]
-# x_test=test.iloc[:,:]
-
-
-# logisticReg=LogisticRegression()
-# logisticReg.fit(x_train,y_train)
-
-# y_pred= logisticReg.predict(x_test)
-# accuracy = round(logisticReg.score(x_train, y_train) * 100, 2)
-# print(accuracy)
-
-
-# ranFor = RandomForestClassifier(n_estimators = 70)
-# ranFor.fit(x_train,y_train)
-# y_pred2= ranFor.predict(x_test)
-# accuracy2 =round(ranFor.score(x_train, y_train)*100,2)
-# print(accuracy2)
-
-
-
-# svc=SVC()
-# svc.fit(x_train, y_train)
-# y_pred3=svc.predict(x_test)
-# accuracy3=round(svc.score(x_train, y_train)*100,2)
-# print(accuracy3)
 
