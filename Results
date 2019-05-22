@@ -1,0 +1,38 @@
+
+6layers
+n_x = 8
+learning rate = 0.008
+train accuracy = 96%
+test accuracy = 72%
+
+
+
+number of epochs = 10000
+lambda=0.001
+learning rate = 0.008
+Train Accuracy = 0.923
+Test Accuracy = 0.564
+
+
+number of epochs = 10000
+lambda=0.0001
+learning rate = 0.008
+Train Accuracy = 0.9539842873176206
+Test Accuracy = 0.5502392344497608
+
+number of epochs = 100000
+learning rate = 0.008
+Train Accuracy = 0.7991021324354658
+Test Accuracy = 0.6483253588516746
+
+
+
+
+
+with Name
+Train Accuracy = 0.9201349831271091
+Test Accuracy = 0.5669856459330144
+without Name
+Train Accuracy = 0.8920134983127109
+Test Accuracy = 0.5574162679425838
+
