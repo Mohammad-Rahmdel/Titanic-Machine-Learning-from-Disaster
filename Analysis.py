@@ -5,12 +5,17 @@ import tensorflow as tf
 import pandas as pd
 import seaborn as sns
 
+import xgboost as xgb
+
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.naive_bayes import GaussianNB
 from sklearn.svm import SVC, LinearSVC
-from sklearn.ensemble import RandomForestClassifier , GradientBoostingClassifier
+from sklearn.ensemble import RandomForestClassifier , GradientBoostingClassifier, AdaBoostClassifier, ExtraTreesClassifier
+
+from sklearn.metrics import make_scorer, accuracy_score
+from sklearn.model_selection import GridSearchCV
 
 # Modelling Helpers
 from sklearn.preprocessing import Imputer , Normalizer , scale
@@ -73,6 +78,10 @@ def plot_model_var_imp( model , X , y ):
 # plot_distribution( train , var = 'Fare' , target = 'Survived')
 # plot_categories( train , cat = 'Pclass' , target = 'Survived' )
 # sns.heatmap(train.isnull(),yticklabels=False, cbar=False, cmap='YlGnBu')
+# sns.barplot(x="Embarked", y="Survived", hue="Sex", data=train)
+# sns.pointplot(x="Pclass", y="Survived", hue="Sex", data=train,
+#               palette={"male": "blue", "female": "pink"},
+#               markers=["*", "o"], linestyles=["-", "--"])
 
 
 def preprocessing():
@@ -89,6 +98,7 @@ def preprocessing():
     imputed = pd.DataFrame()
     imputed[ 'Age' ] = full.Age.fillna( full.Age.mean() )
     imputed[ 'Fare' ] = full.Fare.fillna( full.Fare.mean() )
+
 
 
     title = pd.DataFrame()
@@ -176,17 +186,44 @@ X_train, Y_train, X_test, Y_test = preprocessing()
 # plot_variable_importance(X_train, Y_train)
 
 # model = RandomForestClassifier(n_estimators=100)
+# model = xgb.XGBClassifier(max_depth=3, n_estimators=300, learning_rate=0.05)
 # model = SVC()
 # model = GradientBoostingClassifier()
 # model = KNeighborsClassifier(n_neighbors = 3)
 # model = GaussianNB()
-model = LogisticRegression()
-
+# model = LogisticRegression()
+model = AdaBoostClassifier()cdcccccccccccccccccccd
 model.fit( X_train , Y_train )
 
 print (model.score( X_train , Y_train ))
 print (model.score( X_test , Y_test ))
 # plot_model_var_imp(model, X_train, Y_train)
+
+
+def tunning():
+    model = RandomForestClassifier()
+    parameters = {'n_estimators': [4, 6, 9, 50, 100], 
+                'max_features': ['log2', 'sqrt','auto'], 
+                'criterion': ['entropy', 'gini'],
+                'max_depth': [2, 3, 5, 10], 
+                'min_samples_split': [2, 3, 5],
+                'min_samples_leaf': [1,5,8]
+                }
+                
+    acc_scorer = make_scorer(accuracy_score)
+
+    grid_obj = GridSearchCV(model, parameters, scoring=acc_scorer)
+    grid_obj = grid_obj.fit(X_train, Y_train)
+
+    # Set the model to the best combination of parameters
+    model = grid_obj.best_estimator_
+
+    # Fit the best algorithm to the data. 
+    model.fit( X_train , Y_train )
+
+    print (model.score( X_train , Y_train ))
+    print (model.score( X_test , Y_test ))
+
 
 
 
@@ -217,6 +254,10 @@ GaussianNB
 LogisticRegression
 0.8395061728395061
 0.5430622009569378
+
+XGBOOST
+0.8922558922558923
+0.569377990430622
 """
 
 
