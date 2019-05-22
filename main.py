@@ -3,8 +3,10 @@ import numpy as np
 import h5py
 import matplotlib.pyplot as plt
 import tensorflow as tf
+import warnings
+
 from tensorflow.python.framework import ops
-from utils import preprocessing, test_manipulation, normalizer, random_mini_batches, ReLu, sigmoid
+from utils import train_preprocessing, test_preprocessing, normalizer, random_mini_batches, ReLu, sigmoid
 import pandas as pd
 
 from sklearn.ensemble import RandomForestClassifier
@@ -13,19 +15,20 @@ import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # ignoring warnings
 
 
+# from sklearn.exceptions import DataConversionWarning
+# warnings.filterwarnings(action='ignore', category=DataConversionWarning)
+
 
 
 
 def trainFunction(X_train, Y_train, learning_rate = 0.0001,
           num_epochs = 1500, minibatch_size = 32, print_cost = True, n_l = 1, lambd=0.0, keep_prob=1):
     # n_l = number of hidden layer
-
     ops.reset_default_graph()                         # to be able to rerun the model without overwriting tf variables
     tf.set_random_seed(1)                             # to keep consistent results
     seed = 3                    
     
     m = Y_train.shape[1]
-    print(m)
     n_x = X_train.shape[0]
     n_y = Y_train.shape[0]
 
@@ -34,15 +37,14 @@ def trainFunction(X_train, Y_train, learning_rate = 0.0001,
     
     costs = [] 
 
-    # parameters = initialize_parameters()
     tf.set_random_seed(1)
 
     # define n1 to n(n_l - 1) here
     n = {}
     n["0"] = n_x
-    n["1"] = 8
-    n["2"] = 4
-    n["3"] = 4
+    n["1"] = 26
+    n["2"] = 26
+    n["3"] = 13
     # n["4"] = 64
     # n["5"] = 32
 
@@ -116,17 +118,6 @@ def trainFunction(X_train, Y_train, learning_rate = 0.0001,
 
 
 
-X, Y = preprocessing()
-X_train = X
-Y_train = Y
-m = Y_train.shape[1]
-
-n_l = 4
-# TODO TODO TODO TODO TODO TODO TODO RUN MODEL HERE TODO TODO TODO TODO TODO TODO TODO TODO TODO
-parameters = trainFunction(X_train, Y_train, 0.008, 1000, m, True, n_l, 0, 1)
-
-
-
 def train_prediction(parameters, X, Y_train, n_l = 1):
    
     A = {}
@@ -144,17 +135,27 @@ def train_prediction(parameters, X, Y_train, n_l = 1):
 
     g = np.subtract(Y, Y_train)
     g = abs(g)
-    print(np.sum(g))
+    print("number of wrong prediction from 891 samples = " + str(np.sum(g)))
     print("Train Accuracy = " + str(1 - (np.sum(g)) / m))
 
 
+
+train = train_preprocessing()
+X_train = np.transpose(train.iloc[:,1:].values)   # Convert pandas dataframe to numpy arraylist
+Y_train = np.transpose(train.iloc[:,0:1].values)
+m = Y_train.shape[1]
+
+n_l = 4
+# TODO TODO TODO TODO TODO TODO TODO RUN MODEL HERE TODO TODO TODO TODO TODO TODO TODO TODO TODO
+parameters = trainFunction(X_train, Y_train, 0.008, 3000, m, True, n_l, 0, 1)
 # TODO TODO TODO TODO TODO TODO TODO PREDICT MODEL HERE TODO TODO TODO TODO TODO TODO TODO TODO TODO
 train_prediction(parameters, X_train, Y_train, n_l)
 
 
-def output(parameters):
 
-    X_test = test_manipulation() 
+
+def output(X_test, parameters):
+
     W = {}
     b = {}
     size = int (len(parameters) / 2 ) + 1
@@ -182,65 +183,24 @@ def output(parameters):
 
     g = np.subtract(Y, Y_hat)
     g = abs(g)
-    print(np.sum(g))
+    print("number of wrong prediction from 418 samples = " + str(np.sum(g)))
     m = 418
     print("Test Accuracy = " + str(1 - (np.sum(g)) / m))
 
 
-    data = pd.read_csv("./datasets/test.csv")
-    id = np.array(data.loc[:,'PassengerId'])
-    output = np.stack((id, Y_hat))
-    # output = np.transpose(output)
-    output = output.astype(int)
-    # print(output)
-    df = pd.DataFrame({"PassengerId" : output[0], "Survived" : output[1]})
-    df.to_csv("foo.csv", index=False)
+    # data = pd.read_csv("./datasets/test.csv")
+    # id = np.array(data.loc[:,'PassengerId'])
+    # output = np.stack((id, Y_hat))
+    # # output = np.transpose(output)
+    # output = output.astype(int)
+    # # print(output)
+    # df = pd.DataFrame({"PassengerId" : output[0], "Survived" : output[1]})
+    # df.to_csv("foo.csv", index=False)
     
 
-output(parameters)
+test = test_preprocessing()
+X_test = np.transpose(test.values)
+output(X_test, parameters)
 
 
 
-""" Results :
-8 features
-m 0.05 1000
-80%
-
-6 features
-79%
-
-4layer
-n_x = 8
-83%
-
-4layer
-n_x = 8
-learning rate = 0.008
-90%
-
-6layers
-n_x = 8
-learning rate = 0.008
-train accuracy = 96%
-test accuracy = 72%
-
-
-
-number of epochs = 10000
-lambda=0.001
-learning rate = 0.008
-Train Accuracy = 0.923
-Test Accuracy = 0.564
-
-
-number of epochs = 10000
-lambda=0.0001
-learning rate = 0.008
-Train Accuracy = 0.9539842873176206
-Test Accuracy = 0.5502392344497608
-
-number of epochs = 100000
-learning rate = 0.008
-Train Accuracy = 0.7991021324354658
-Test Accuracy = 0.6483253588516746
-"""
