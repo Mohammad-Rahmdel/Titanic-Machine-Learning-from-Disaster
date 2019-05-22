@@ -1,16 +1,14 @@
 import math
 import numpy as np
-import h5py
 import matplotlib.pyplot as plt
 import tensorflow as tf
 import warnings
+warnings.filterwarnings('ignore')
 
 from tensorflow.python.framework import ops
 from utils import train_preprocessing, test_preprocessing, normalizer, random_mini_batches, ReLu, sigmoid
+from Analysis import preprocessing
 import pandas as pd
-
-from sklearn.ensemble import RandomForestClassifier
-
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # ignoring warnings
 
@@ -42,9 +40,9 @@ def trainFunction(X_train, Y_train, learning_rate = 0.0001,
     # define n1 to n(n_l - 1) here
     n = {}
     n["0"] = n_x
-    n["1"] = 26
-    n["2"] = 26
-    n["3"] = 13
+    n["1"] = n_x * 2
+    n["2"] = n_x * 2
+    n["3"] = n_x
     # n["4"] = 64
     # n["5"] = 32
 
@@ -119,7 +117,7 @@ def trainFunction(X_train, Y_train, learning_rate = 0.0001,
 
 
 def train_prediction(parameters, X, Y_train, n_l = 1):
-   
+    m = Y_train.shape[1]
     A = {}
     Z = {}
     A["0"] = X
@@ -135,19 +133,30 @@ def train_prediction(parameters, X, Y_train, n_l = 1):
 
     g = np.subtract(Y, Y_train)
     g = abs(g)
-    print("number of wrong prediction from 891 samples = " + str(np.sum(g)))
+    print("number of wrong predictions from 891 samples = " + str(np.sum(g)))
     print("Train Accuracy = " + str(1 - (np.sum(g)) / m))
 
 
 
-train = train_preprocessing()
-X_train = np.transpose(train.iloc[:,1:].values)   # Convert pandas dataframe to numpy arraylist
-Y_train = np.transpose(train.iloc[:,0:1].values)
-m = Y_train.shape[1]
+# # USING pre_processing()
+# train = train_preprocessing()
+# X_train = np.transpose(train.iloc[:,1:].values)   # Convert pandas dataframe to numpy arraylist
+# Y_train = np.transpose(train.iloc[:,0:1].values)
+# m = Y_train.shape[1]
+# # print(X_train.shape) # (13, 889)
+# # print(Y_train.shape) # (1, 889)
 
+# # USING processing()
+X_train, Y_train, X_test, _ = preprocessing()
+X_train = np.transpose(X_train.iloc[:,:].values)
+X_test = np.transpose(X_test.iloc[:,:].values)
+Y_train = Y_train.values
+Y_train = Y_train.reshape(Y_train.shape+(1,))
+Y_train = np.transpose(Y_train)
+m = Y_train.shape[1]
 n_l = 4
 # TODO TODO TODO TODO TODO TODO TODO RUN MODEL HERE TODO TODO TODO TODO TODO TODO TODO TODO TODO
-parameters = trainFunction(X_train, Y_train, 0.008, 3000, m, True, n_l, 0, 1)
+parameters = trainFunction(X_train, Y_train, 0.0005, 6000, m, True, n_l, 0, 1)
 # TODO TODO TODO TODO TODO TODO TODO PREDICT MODEL HERE TODO TODO TODO TODO TODO TODO TODO TODO TODO
 train_prediction(parameters, X_train, Y_train, n_l)
 
@@ -183,7 +192,7 @@ def output(X_test, parameters):
 
     g = np.subtract(Y, Y_hat)
     g = abs(g)
-    print("number of wrong prediction from 418 samples = " + str(np.sum(g)))
+    print("number of wrong predictions from 418 samples = " + str(np.sum(g)))
     m = 418
     print("Test Accuracy = " + str(1 - (np.sum(g)) / m))
 
@@ -198,9 +207,10 @@ def output(X_test, parameters):
     # df.to_csv("foo.csv", index=False)
     
 
-test = test_preprocessing()
-X_test = np.transpose(test.values)
+# test = test_preprocessing()
+# X_test = np.transpose(test.values)
 output(X_test, parameters)
+
 
 
 

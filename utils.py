@@ -75,6 +75,12 @@ def normalizer(x):
     return x
 
 
+def age_normalizer(input):
+    input = input.values
+    for i in range(len(input)):
+        x = np.floor((input[i] - 0.0001) / 10) 
+        input[i] = int(x)
+
 
 def train_visulization():
     data = pd.read_csv("./datasets/train.csv")
@@ -153,6 +159,7 @@ def train_preprocessing():
 
 
     data['Age']=data[['Age', 'Pclass']].apply(impute_age, axis=1)
+    age_normalizer(data['Age'])
 
     data.dropna(inplace=True) #Dropping null values
 
@@ -165,7 +172,6 @@ def train_preprocessing():
     # data.drop(['Name'], axis=1, inplace=True)
     train = data
     return train
-
 
 
 def test_visualization():
@@ -226,6 +232,7 @@ def test_preprocessing():
         else:
             return Age
     test['Age']=test[['Age', 'Pclass']].apply(impute_age, axis=1)
+    age_normalizer(test['Age'])
 
 
     # print(test.head())
@@ -257,5 +264,7 @@ def test_preprocessing():
     # test.drop(['Name'], axis=1, inplace=True)
     
     return test
+
+
 
 
