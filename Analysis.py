@@ -5,6 +5,10 @@ import tensorflow as tf
 import pandas as pd
 import seaborn as sns
 
+import plotly.graph_objs as go
+import plotly.tools as tls
+import plotly.offline as py
+
 import xgboost as xgb
 
 from sklearn.tree import DecisionTreeClassifier
@@ -192,11 +196,13 @@ X_train, Y_train, X_test, Y_test = preprocessing()
 # model = KNeighborsClassifier(n_neighbors = 3)
 # model = GaussianNB()
 # model = LogisticRegression()
-model = AdaBoostClassifier()cdcccccccccccccccccccd
-model.fit( X_train , Y_train )
+# model = AdaBoostClassifier(n_estimators=500, learning_rate=0.75)
+# model = ExtraTreesClassifier(n_jobs=-1, n_estimators=500, max_depth=8, min_samples_leaf=2, verbose=0)
 
-print (model.score( X_train , Y_train ))
-print (model.score( X_test , Y_test ))
+# model.fit( X_train , Y_train )
+
+# print (model.score( X_train , Y_train ))
+# print (model.score( X_test , Y_test ))
 # plot_model_var_imp(model, X_train, Y_train)
 
 
@@ -226,7 +232,77 @@ def tunning():
 
 
 
+def feature(X_train, Y_train):
+    # RFC_info = 0
+    # GBC_info = 0
+    # ABC_info = 0
+    # ETC_info = 0
+    RFC = RandomForestClassifier(n_estimators=100)
+    RFC_info = RFC.fit( X_train , Y_train ).feature_importances_
 
+    GBC = GradientBoostingClassifier()
+    GBC_info = GBC.fit( X_train , Y_train ).feature_importances_
+
+    ABC = AdaBoostClassifier(n_estimators=500, learning_rate=0.75)
+    ABC_info = ABC.fit( X_train , Y_train ).feature_importances_
+
+    ETC = ExtraTreesClassifier(n_jobs=-1, n_estimators=500, max_depth=8, min_samples_leaf=2, verbose=0)
+    ETC_info = ETC.fit( X_train , Y_train ).feature_importances_
+
+    cols = X_train.columns.values
+    
+    feature_dataframe = pd.DataFrame({   
+        'features': cols,
+        'RFC': RFC_info,
+        'ETC': ETC_info,
+        'ABC': ABC_info,
+        'GBC': GBC_info
+    })
+
+    feature_dataframe['mean'] = feature_dataframe.mean(axis= 1) # axis = 1 computes the mean row-wise
+    # print(feature_dataframe)
+
+    y = feature_dataframe['mean'].values
+    x = feature_dataframe['features'].values
+    data = [go.Bar(
+                x= x,
+                y= y,
+                width = 0.5,
+                marker=dict(
+                color = feature_dataframe['mean'].values,
+                colorscale='Portland',
+                showscale=True,
+                reversescale = False
+                ),
+                opacity=0.6
+            )]
+
+    layout= go.Layout(
+        autosize= True,
+        title= 'Barplots of Mean Feature Importance',
+        hovermode= 'closest',
+        # xaxis= dict(
+        #     title= 'Pop',
+        #     ticklen= 5,
+        #     zeroline= False,
+        #     gridwidth= 2,
+        # ),
+        yaxis=dict(
+            title= 'Feature Importance',
+            ticklen= 5,
+            gridwidth= 2
+        ),
+        showlegend= False
+    )
+    fig = go.Figure(data=data, layout=layout)
+    py.iplot(fig, filename='bar-direct-labels')
+    
+
+
+# feature(X_train, Y_train)
+
+
+    
 """
 full_X = pd.concat( [ sex, embarked, pclass, imputed, cabin, title, family ] , axis=1 )
 train and test set accuracy for models
@@ -258,6 +334,10 @@ LogisticRegression
 XGBOOST
 0.8922558922558923
 0.569377990430622
+
+AdaBoostClassifier
+0.8698092031425365
+0.5717703349282297
 """
 
 
