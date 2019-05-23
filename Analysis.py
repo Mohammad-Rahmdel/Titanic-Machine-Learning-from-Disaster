@@ -8,6 +8,7 @@ import seaborn as sns
 import plotly.graph_objs as go
 import plotly.tools as tls
 import plotly.offline as py
+py.init_notebook_mode(connected=True)
 
 import xgboost as xgb
 
@@ -28,6 +29,7 @@ from sklearn.feature_selection import RFECV
 
 import warnings
 warnings.filterwarnings('ignore')
+
 
 
 def plot_correlation_map( df ):
@@ -260,7 +262,7 @@ def feature(X_train, Y_train):
     })
 
     feature_dataframe['mean'] = feature_dataframe.mean(axis= 1) # axis = 1 computes the mean row-wise
-    # print(feature_dataframe)
+    print(feature_dataframe)
 
     y = feature_dataframe['mean'].values
     x = feature_dataframe['features'].values
@@ -299,7 +301,7 @@ def feature(X_train, Y_train):
     
 
 
-# feature(X_train, Y_train)
+
 
 
     
