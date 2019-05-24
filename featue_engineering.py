@@ -170,7 +170,10 @@ siblings, parents, size, isAlone = family_extraction(full)
 
 full = pd.concat([sex,embarked,pclass,age,fare,name,ticket,cabin,siblings,parents,size,isAlone], axis=1)
 
-# full.columns.age = 'text'
+# full = pd.concat([siblings,parents,size,isAlone], axis=1)
+# sns.heatmap(full.corr(), annot=True)
+# plt.show()
+
 # print(full.head(2))
 
 # sns.heatmap(full.isnull(),yticklabels=False, cbar=False, cmap='YlGnBu')
@@ -178,8 +181,6 @@ full = pd.concat([sex,embarked,pclass,age,fare,name,ticket,cabin,siblings,parent
 
 def preprocessed_data():
     x_train = full[0:891]
-    X_test = full[891:]
+    x_test = full[891:]
     
-    return x_train, y_train, X_test
-
-preprocessed_data()
+    return x_train, y_train, x_test
