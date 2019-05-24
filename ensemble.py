@@ -353,6 +353,10 @@ gbm = xgb.XGBClassifier(
 predictions = gbm.predict(x_test)
 
 
+# predictions = np.sum(x_test, axis=1)
+# predictions /= 5
+# predictions = np.around((predictions))
+
 def predict(Y_hat):
     data = pd.read_csv("./datasets/answer.csv")
     Y = np.array(data.loc[:,'survived']) 

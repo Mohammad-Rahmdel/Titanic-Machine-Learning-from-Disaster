@@ -12,6 +12,8 @@ import pandas as pd
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # ignoring warnings
 
+from featue_engineering import preprocessed_data
+
 
 # from sklearn.exceptions import DataConversionWarning
 # warnings.filterwarnings(action='ignore', category=DataConversionWarning)
@@ -40,11 +42,11 @@ def trainFunction(X_train, Y_train, learning_rate = 0.0001,
     # define n1 to n(n_l - 1) here
     n = {}
     n["0"] = n_x
-    n["1"] = n_x * 2
-    n["2"] = n_x * 2
-    n["3"] = n_x
-    # n["4"] = 64
-    # n["5"] = 32
+    n["1"] = n_x * 4
+    n["2"] = n_x * 4
+    n["3"] = n_x * 2
+    # n["4"] = n_x * 4
+    # n["5"] = n_x * 2
 
     
     parameters = {}
@@ -147,16 +149,28 @@ def train_prediction(parameters, X, Y_train, n_l = 1):
 # # print(Y_train.shape) # (1, 889)
 
 # # USING processing()
-X_train, Y_train, X_test, _ = preprocessing()
-X_train = np.transpose(X_train.iloc[:,:].values)
-X_test = np.transpose(X_test.iloc[:,:].values)
+# X_train, Y_train, X_test, _ = preprocessing()
+# X_train = np.transpose(X_train.iloc[:,:].values)
+# X_test = np.transpose(X_test.iloc[:,:].values)
+# Y_train = Y_train.values
+# Y_train = Y_train.reshape(Y_train.shape+(1,))
+# Y_train = np.transpose(Y_train)
+# m = Y_train.shape[1]
+
+# # USING preprocessed_data()
+X_train, Y_train, X_test = preprocessed_data()
+
+X_train = np.transpose(X_train.values)
+X_test = np.transpose(X_test.values)
 Y_train = Y_train.values
 Y_train = Y_train.reshape(Y_train.shape+(1,))
 Y_train = np.transpose(Y_train)
 m = Y_train.shape[1]
+
+
 n_l = 4
 # TODO TODO TODO TODO TODO TODO TODO RUN MODEL HERE TODO TODO TODO TODO TODO TODO TODO TODO TODO
-parameters = trainFunction(X_train, Y_train, 0.0005, 6000, m, True, n_l, 0, 1)
+parameters = trainFunction(X_train, Y_train, 0.0005, 1000, m, True, n_l, 0, 1)
 # TODO TODO TODO TODO TODO TODO TODO PREDICT MODEL HERE TODO TODO TODO TODO TODO TODO TODO TODO TODO
 train_prediction(parameters, X_train, Y_train, n_l)
 
@@ -209,6 +223,7 @@ def output(X_test, parameters):
 
 # test = test_preprocessing()
 # X_test = np.transpose(test.values)
+
 output(X_test, parameters)
 
 

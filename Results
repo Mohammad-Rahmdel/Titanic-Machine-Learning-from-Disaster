@@ -1,4 +1,3 @@
-
 6layers
 n_x = 8
 learning rate = 0.008
@@ -36,3 +35,12 @@ without Name
 Train Accuracy = 0.8920134983127109
 Test Accuracy = 0.5574162679425838
 
+
+Age Analysis:
+Train set
+0.42 to 80
+Test set
+0.17 to 76
+with age discretization
+Train Accuracy = 0.9088863892013498
+Test Accuracy = 0.5598086124401913
