@@ -9,6 +9,8 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.naive_bayes import GaussianNB
 from sklearn.svm import SVC, LinearSVC
 from sklearn.ensemble import RandomForestClassifier , GradientBoostingClassifier, AdaBoostClassifier, ExtraTreesClassifier, BaggingClassifier
+from sklearn.model_selection import StratifiedKFold, train_test_split, KFold
+from sklearn.feature_selection import RFECV
 
 import pandas as pd
 import numpy as np
@@ -54,6 +56,25 @@ def find_best_RFC(model):
 
     return model
 
+
+def run_kfold(clf, X_all, Y_all):
+    kf = KFold(n_splits=10)
+    outcomes = []
+    fold = 0
+    for train_index, test_index in kf.split(X_all, Y_all):
+        fold += 1
+        X_train, X_test = X_all.values[train_index], X_all.values[test_index]
+        y_train, y_test = Y_all.values[train_index], Y_all.values[test_index]
+        clf.fit(X_train, y_train)
+        predictions = clf.predict(X_test)
+        accuracy = accuracy_score(y_test, predictions)
+        outcomes.append(accuracy)
+        print("Fold {0} accuracy: {1}".format(fold, accuracy))     
+    mean_outcome = np.mean(outcomes)
+    print("Mean Accuracy: {0}".format(mean_outcome)) 
+
+
+
 def get_models():
     model1 = RandomForestClassifier()
     model2 = GradientBoostingClassifier()
@@ -84,15 +105,47 @@ def test_models(x_train, y_train, x_test, y_test):
         print("")
 
 
+def optimal_features(model, x_train, y_train, x_test, y_test):
+    rfecv = RFECV( estimator = model , step = 1 , cv = StratifiedKFold( 2 ) , scoring = 'accuracy' )
+    rfecv.fit( x_train , y_train )
+
+    print (rfecv.score( x_train , y_train ) , rfecv.score( x_test , y_test ))
+    print( "Optimal number of features : %d" % rfecv.n_features_ )
+
+    # # Plot number of features VS. cross-validation scores
+    plt.figure()
+    plt.xlabel( "Number of features selected" )
+    plt.ylabel( "Cross validation score (nb of correct classifications)" )
+    plt.plot( range( 1 , len( rfecv.grid_scores_ ) + 1 ) , rfecv.grid_scores_ )
+    plt.show()
+
+
+
+
+def train_splitter(x_train, y_train, num_test=0.1):
+    return train_test_split(x_train, y_train, test_size=num_test, random_state=23)
+
+
+
+
+
 x_train, y_train, x_test, y_test = preprocessed_data()
+
+# x_train, x_cvs, y_train, y_cvs = train_test_split(x_train, y_train)
+
 
 # plot_variable_importance(x_train, y_train)
 
 # model = RandomForestClassifier()
-# model.fit( x_train , y_train )
+model = SVC()
+model.fit( x_train , y_train )
 
-# print (model.score( x_train , y_train ))
-# print (model.score( x_test , y_test ))
+
+# run_kfold(model, x_train, y_train)
+
+print (model.score( x_train , y_train ))
+# print (model.score( x_cvs , y_cvs ))
+print (model.score( x_test , y_test ))
 
 
 

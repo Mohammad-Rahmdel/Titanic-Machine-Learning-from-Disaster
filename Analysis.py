@@ -77,9 +77,15 @@ def plot_model_var_imp( model , X , y ):
     print (model.score( X , y ))
 
 
-# train = pd.read_csv("./datasets/train.csv")
+train = pd.read_csv("./datasets/train.csv")
+
+
+# print(train.Fare.describe())
+
+
 # train.describe()
 # plot_correlation_map( train )
+
 # plot_distribution( train , var = 'Age' , target = 'Survived' , row = 'Sex' )
 # plot_distribution( train , var = 'Fare' , target = 'Survived')
 # plot_categories( train , cat = 'Pclass' , target = 'Survived' )
@@ -88,7 +94,7 @@ def plot_model_var_imp( model , X , y ):
 # sns.pointplot(x="Pclass", y="Survived", hue="Sex", data=train,
 #               palette={"male": "blue", "female": "pink"},
 #               markers=["*", "o"], linestyles=["-", "--"])
-
+# plt.show()
 
 def preprocessing():
     train = pd.read_csv("./datasets/train.csv")
@@ -190,7 +196,7 @@ def preprocessing():
 
 X_train, Y_train, X_test, Y_test = preprocessing()
 # plot_variable_importance(X_train, Y_train)
-
+# plt.show()
 # model = RandomForestClassifier(n_estimators=100)
 # model = xgb.XGBClassifier(max_depth=3, n_estimators=300, learning_rate=0.05)
 # model = SVC()

@@ -15,7 +15,7 @@ def sex_extraction(data):
 
 
 def embarked_extraction(data):
-    embarked = pd.get_dummies(data['Embarked'], drop_first=False) #fills nan with 0 0 0
+    embarked = pd.get_dummies(data['Embarked'], drop_first=False, prefix='Embark') #fills nan with 0 0 0
     return embarked
 
 
@@ -74,12 +74,16 @@ def age_extraction(data):
 
 def fare_extraction(data):
     fare = data.Fare.fillna( data.Fare.mean() )
-    # print(np.max(fare))
-    # print(np.min(fare))
+    # print(train.Fare.describe())
     # plt.hist(fare, bins=100)
     # plt.show()
-    bins = (-1, 5, 15, 25, 31, 90, 513)
-    group_names = [0, 1, 2, 3, 4, 5]
+
+    # bins = (-1, 5, 15, 25, 31, 90, 513)
+    # group_names = [0, 1, 2, 3, 4, 5]
+
+    bins = (-1, 0, 8, 15, 31, 1000)
+    group_names = [0, 1, 2, 3, 4]
+
     fare = pd.cut(fare, bins, labels=group_names)
     return fare
 
@@ -121,7 +125,7 @@ def ticket_extraction(data):
             return 'X'
 
     ticket = ticket.map( ticket_handler2 )
-    ticket = pd.get_dummies(ticket, drop_first=False)
+    ticket = pd.get_dummies(ticket, drop_first=False, prefix='Ticket')
     # print(ticket.head(20))
     return ticket
 
@@ -182,5 +186,9 @@ full = pd.concat([sex,embarked,pclass,age,fare,name,ticket,cabin,siblings,parent
 def preprocessed_data():
     x_train = full[0:891]
     x_test = full[891:]
-    
-    return x_train, y_train, x_test
+
+    data = pd.read_csv("./datasets/answer.csv")
+    Y = np.array(data.loc[:,'survived']) 
+    y_test = Y[891:]
+
+    return x_train, y_train, x_test, y_test
