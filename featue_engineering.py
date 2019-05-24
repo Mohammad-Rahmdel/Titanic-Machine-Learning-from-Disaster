@@ -176,8 +176,10 @@ full = pd.concat([sex,embarked,pclass,age,fare,name,ticket,cabin,siblings,parent
 # sns.heatmap(full.isnull(),yticklabels=False, cbar=False, cmap='YlGnBu')
 # plt.show()
 
-def preprocessed_data(full, y_train):
+def preprocessed_data():
     x_train = full[0:891]
     X_test = full[891:]
     
-    return X_test, y_train, X_test
+    return x_train, y_train, X_test
+
+preprocessed_data()
