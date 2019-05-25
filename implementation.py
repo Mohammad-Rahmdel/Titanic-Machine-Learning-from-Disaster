@@ -86,16 +86,15 @@ def get_models():
 
     model = [model1, model2, model3, model4]
 
-    # model5 = SVC()
-    
-    # model6 = LogisticRegression()
-    # model7 = KNeighborsClassifier()
-    # model8 = GaussianNB()
+    model5 = SVC()    
+    model6 = LogisticRegression()
+    model7 = KNeighborsClassifier()
+    model8 = GaussianNB()
 
-    # model.append(model5)
-    # model.append(model6)
-    # model.append(model7)
-    # model.append(model8)
+    model.append(model5)
+    model.append(model6)
+    model.append(model7)
+    model.append(model8)
 
     return model
 
@@ -125,11 +124,11 @@ def optimal_features(model, x_train, y_train, x_test, y_test):
 
 
 
-def first_level(x_train, y_train, x_test):
+def first_level(x_train, y_train, x_test, j=4):
+    # # j = number of models we want to stack
     models = get_models()
     y_trains = []
     y_tests = []
-    j = 4
     for i in range(j):
         model = models[i]
         model.fit( x_train , y_train )
@@ -138,8 +137,9 @@ def first_level(x_train, y_train, x_test):
         y_tests.append(test_y)
         y_trains.append(train_y)
 
-    base_predictions_train = pd.DataFrame({'C1':y_trains[0], 'C2':y_trains[1], 'C3':y_trains[2], 'C4':y_trains[3]})
-
+    base_predictions_train = pd.DataFrame()
+    for i in range(j):
+        base_predictions_train["C" + str(i+1)] = y_trains[i]
 
     data = [
         go.Heatmap(
@@ -153,9 +153,11 @@ def first_level(x_train, y_train, x_test):
     ]
     py.iplot(data, filename='labelled-heatmap')
 
-    
-    x_train = np.column_stack([y_trains[0], y_trains[1], y_trains[2], y_trains[3]])
-    x_test = np.column_stack([y_tests[0], y_tests[1], y_tests[2], y_tests[3]])
+    x_train = y_trains[0]
+    x_test = y_tests[0]
+    for i in range(1, j):
+        x_train = np.column_stack([x_train, y_trains[i]])
+        x_test = np.column_stack([x_test, y_tests[i]])
 
     return x_train, x_test
 
@@ -229,8 +231,8 @@ x_train, y_train, x_test, y_test = preprocessed_data()
 
 
 
-X1, X2 = first_level(x_train, y_train, x_test)
-second_level(X1, y_train, X2, y_test)
+x_train_stacked, x_test_stacked = first_level(x_train, y_train, x_test, 8)
+second_level(x_train_stacked, y_train, x_test_stacked, y_test)
 
 
 # test_models(x_train, y_train, x_test, y_test)
