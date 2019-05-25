@@ -1,4 +1,4 @@
-from featue_engineering import preprocessed_data
+from featue_engineering import preprocessed_data, get_passengerID
 
 
 from sklearn.model_selection import GridSearchCV
@@ -16,6 +16,9 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import xgboost as xgb
+
+import plotly.graph_objs as go
+import plotly.offline as py
 
 
 def test_evaluation(Y_hat):
@@ -83,16 +86,16 @@ def get_models():
 
     model = [model1, model2, model3, model4]
 
-    model5 = SVC()
+    # model5 = SVC()
     
-    model6 = LogisticRegression()
-    model7 = KNeighborsClassifier()
-    model8 = GaussianNB()
+    # model6 = LogisticRegression()
+    # model7 = KNeighborsClassifier()
+    # model8 = GaussianNB()
 
-    model.append(model5)
-    model.append(model6)
-    model.append(model7)
-    model.append(model8)
+    # model.append(model5)
+    # model.append(model6)
+    # model.append(model7)
+    # model.append(model8)
 
     return model
 
@@ -122,8 +125,79 @@ def optimal_features(model, x_train, y_train, x_test, y_test):
 
 
 
+def first_level(x_train, y_train, x_test):
+    models = get_models()
+    y_trains = []
+    y_tests = []
+    j = 4
+    for i in range(j):
+        model = models[i]
+        model.fit( x_train , y_train )
+        train_y = model.predict( x_train )
+        test_y = model.predict( x_test )
+        y_tests.append(test_y)
+        y_trains.append(train_y)
+
+    base_predictions_train = pd.DataFrame({'C1':y_trains[0], 'C2':y_trains[1], 'C3':y_trains[2], 'C4':y_trains[3]})
+
+
+    data = [
+        go.Heatmap(
+            z= base_predictions_train.astype(float).corr().values ,
+            x=base_predictions_train.columns.values,
+            y= base_predictions_train.columns.values,
+            colorscale='Viridis',
+                showscale=True,
+                reversescale = True
+        )
+    ]
+    py.iplot(data, filename='labelled-heatmap')
+
+    
+    x_train = np.column_stack([y_trains[0], y_trains[1], y_trains[2], y_trains[3]])
+    x_test = np.column_stack([y_tests[0], y_tests[1], y_tests[2], y_tests[3]])
+
+    return x_train, x_test
+
+
+
+def second_level(x_train, y_train, x_test, y_test):
+    gbm = xgb.XGBClassifier(
+    #learning_rate = 0.02,
+    n_estimators= 2000,
+    max_depth= 4,
+    min_child_weight= 2,
+    #gamma=1,
+    gamma=0.9,                        
+    subsample=0.8,
+    colsample_bytree=0.8,
+    objective= 'binary:logistic',
+    nthread= -1,
+    scale_pos_weight=1)
+
+    gbm.fit(x_train, y_train)
+
+    print ("XGB train accuracy = " + str(gbm.score( x_train , y_train )))
+    print ("XGB test accuracy = " + str(gbm.score( x_test , y_test )))
+
+    y_hat = gbm.predict(x_test)
+    
+    return y_hat
+
+
+
+
 def train_splitter(x_train, y_train, num_test=0.1):
     return train_test_split(x_train, y_train, test_size=num_test, random_state=23)
+
+
+
+def make_csv(model, x_test, passenger_id):
+    test_Y = model.predict( x_test )
+    test = pd.DataFrame( { 'PassengerId': passenger_id , 'Survived': test_Y } )
+    test.shape
+    test.head()
+    test.to_csv( 'titanic_pred.csv' , index = False )
 
 
 
@@ -137,15 +211,16 @@ x_train, y_train, x_test, y_test = preprocessed_data()
 # plot_variable_importance(x_train, y_train)
 
 # model = RandomForestClassifier()
-model = SVC()
-model.fit( x_train , y_train )
+# model = SVC()
+# model.fit( x_train , y_train )
+
 
 
 # run_kfold(model, x_train, y_train)
 
-print (model.score( x_train , y_train ))
+# print (model.score( x_train , y_train ))
 # print (model.score( x_cvs , y_cvs ))
-print (model.score( x_test , y_test ))
+# print (model.score( x_test , y_test ))
 
 
 
@@ -153,4 +228,13 @@ print (model.score( x_test , y_test ))
 # plt.show()
 
 
+
+X1, X2 = first_level(x_train, y_train, x_test)
+second_level(X1, y_train, X2, y_test)
+
+
 # test_models(x_train, y_train, x_test, y_test)
+
+# make_csv(model, x_test, get_passengerID())
+
+
