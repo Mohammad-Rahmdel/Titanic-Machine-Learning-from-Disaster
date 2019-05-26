@@ -153,13 +153,34 @@ def family_extraction(data):
 
 
 
+def show_categorical_features(data):
+    print(data.describe(include=['O']))
+
+def show_numerical_featues(data):
+    print(data.describe())
+
+def show_data_types(data):
+    print(full.info())
+
+
+def analyze_by_pivoting(data, feature_A):
+    print(data[[feature_A, 'Survived']].groupby([feature_A], as_index=False).mean().sort_values(by='Survived', ascending=False))
+
+
+
 train = pd.read_csv("./datasets/train.csv")
+# analyze_by_pivoting(train, 'Pclass')
+analyze_by_pivoting(train, 'Sex')
 y_train = train.Survived
 train.drop('Survived', axis=1, inplace=True)
 test = pd.read_csv("./datasets/test.csv")
 passenger_id = test.PassengerId
 full = train.append( test , ignore_index = True )
 full.drop('PassengerId', axis=1, inplace=True)
+
+
+# print(full.describe())
+
 
 
 sex = sex_extraction(full)
@@ -174,6 +195,8 @@ siblings, parents, size, isAlone = family_extraction(full)
 
 full = pd.concat([sex,embarked,pclass,age,fare,name,ticket,cabin,siblings,parents,size,isAlone], axis=1)
 
+
+
 # full = pd.concat([siblings,parents,size,isAlone], axis=1)
 # sns.heatmap(full.corr(), annot=True)
 # plt.show()
@@ -182,6 +205,10 @@ full = pd.concat([sex,embarked,pclass,age,fare,name,ticket,cabin,siblings,parent
 
 # sns.heatmap(full.isnull(),yticklabels=False, cbar=False, cmap='YlGnBu')
 # plt.show()
+
+def get_passengerID():
+    return passenger_id
+
 
 def preprocessed_data():
     x_train = full[0:891]
