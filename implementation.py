@@ -4,7 +4,7 @@ from featue_engineering import preprocessed_data, get_passengerID
 from sklearn.model_selection import GridSearchCV
 from sklearn.metrics import accuracy_score, make_scorer
 from sklearn.tree import DecisionTreeClassifier
-from sklearn.linear_model import LogisticRegression
+from sklearn.linear_model import LogisticRegression, Perceptron, SGDClassifier
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.naive_bayes import GaussianNB
 from sklearn.svm import SVC, LinearSVC
@@ -90,6 +90,10 @@ def get_models():
     model6 = LogisticRegression()
     model7 = KNeighborsClassifier()
     model8 = GaussianNB()
+    #  Perceptron()
+    # LinearSVC()
+    # SGDClassifier()
+    # DecisionTreeClassifier()
 
     model.append(model5)
     model.append(model6)
@@ -98,6 +102,7 @@ def get_models():
 
     return model
 
+
 def test_models(x_train, y_train, x_test, y_test):
     models = get_models()
     for model in models:
@@ -105,6 +110,7 @@ def test_models(x_train, y_train, x_test, y_test):
         print ("Train : " + str(model.score( x_train , y_train )))
         print ("Test  : " + str(model.score( x_test , y_test )))
         print("")
+
 
 
 def optimal_features(model, x_train, y_train, x_test, y_test):
@@ -122,6 +128,12 @@ def optimal_features(model, x_train, y_train, x_test, y_test):
     plt.show()
 
 
+
+def logisticregression_coefficients(x_train, model):
+    coeff_df = pd.DataFrame(x_train.columns)
+    coeff_df.columns = ['Feature']
+    coeff_df["Correlation"] = pd.Series(model.coef_[0])
+    print(coeff_df.sort_values(by='Correlation', ascending=False))
 
 
 def first_level(x_train, y_train, x_test, j=4):
@@ -214,15 +226,25 @@ x_train, y_train, x_test, y_test = preprocessed_data()
 
 # model = RandomForestClassifier()
 # model = SVC()
-# model.fit( x_train , y_train )
+model = LogisticRegression()
+# model = LinearSVC()
+# model = SGDClassifier()  # ***
+# model = DecisionTreeClassifier() # ***
+model.fit( x_train , y_train )
+
+# logisticregression_coefficients(x_train, model)
 
 
 
 # run_kfold(model, x_train, y_train)
 
-# print (model.score( x_train , y_train ))
+print (model.score( x_train , y_train ))
 # print (model.score( x_cvs , y_cvs ))
-# print (model.score( x_test , y_test ))
+print (model.score( x_test , y_test ))
+
+# print(x_train.head(2))
+
+
 
 
 
@@ -231,8 +253,9 @@ x_train, y_train, x_test, y_test = preprocessed_data()
 
 
 
-x_train_stacked, x_test_stacked = first_level(x_train, y_train, x_test, 8)
-second_level(x_train_stacked, y_train, x_test_stacked, y_test)
+# # TWO LEVEL MODEL / STACKING / ENSEMBELING
+# x_train_stacked, x_test_stacked = first_level(x_train, y_train, x_test, 8)
+# second_level(x_train_stacked, y_train, x_test_stacked, y_test)
 
 
 # test_models(x_train, y_train, x_test, y_test)

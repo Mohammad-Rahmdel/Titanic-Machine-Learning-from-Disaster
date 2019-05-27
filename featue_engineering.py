@@ -9,6 +9,9 @@ import warnings
 warnings.filterwarnings('ignore')
 
 
+
+
+
 def sex_extraction(data):
     sex = pd.get_dummies(data['Sex'], drop_first=False)
     return sex
@@ -25,6 +28,11 @@ def pclass_extraction(data):
     return pclass
 
 
+def age_find_bounds(data):
+    data['AgeBand'] = pd.qcut(data['Age'], 4)
+    print(data[['AgeBand', 'Survived']].groupby(['AgeBand'], as_index=False).mean().sort_values(by='AgeBand', ascending=True))
+
+    
 def age_extraction(data):
     
     # STEP 1 IMPUTING (filling missing values)
@@ -70,6 +78,10 @@ def age_extraction(data):
 
     return data['age']
 
+
+def fare_find_bounds(data):
+    data['FareBand'] = pd.qcut(data['Fare'], 4)
+    print(data[['FareBand', 'Survived']].groupby(['FareBand'], as_index=False).mean().sort_values(by='FareBand', ascending=True))
 
 
 def fare_extraction(data):
@@ -163,14 +175,44 @@ def show_data_types(data):
     print(full.info())
 
 
-def analyze_by_pivoting(data, feature_A):
-    print(data[[feature_A, 'Survived']].groupby([feature_A], as_index=False).mean().sort_values(by='Survived', ascending=False))
+def analyze_by_pivoting(data, feature):
+    print(data[[feature, 'Survived']].groupby([feature], as_index=False).mean().sort_values(by='Survived', ascending=False))
 
+def correlating_numerical_features(data, feature):
+    g = sns.FacetGrid(data, col='Survived')
+    g.map(plt.hist, feature, bins=20)
+    plt.show()
 
+def correlating_numerical_and_ordinal_features(data, feature_A, feature_B):
+    grid = sns.FacetGrid(train, col='Survived', row=feature_A, size=2.2, aspect=1.6)
+    grid.map(plt.hist, feature_B, alpha=.5, bins=20)
+    grid.add_legend()
+    plt.show()
+
+def correlating_categorical_features(data, feature_A, feature_B, feature_C):
+    grid = sns.FacetGrid(data, row=feature_A, size=2.2, aspect=1.6)
+    grid.map(sns.pointplot, feature_B, 'Survived', feature_C, palette='deep')
+    grid.add_legend()
+    plt.show()
+
+def correlating_categorical_and_numerical_features(data, feature_A, feature_B, feature_C):
+    grid = sns.FacetGrid(data, row=feature_A, col='Survived', size=2.2, aspect=1.6)
+    grid.map(sns.barplot, feature_B, feature_C, alpha=.5, ci=None)
+    grid.add_legend()
+    plt.show()
 
 train = pd.read_csv("./datasets/train.csv")
-# analyze_by_pivoting(train, 'Pclass')
-analyze_by_pivoting(train, 'Sex')
+# fare_find_bounds(train)
+# age_find_bounds(train)
+
+
+# analyze_by_pivoting(train, 'Sex')
+# correlating_numerical_features(train, 'Age')
+# correlating_numerical_and_ordinal_features(train, 'Pclass', 'Age')
+# correlating_categorical_features(train, 'Embarked', 'Pclass', 'Sex')
+# correlating_categorical_and_numerical_features(train, 'Embarked', 'Sex', 'Fare')
+
+
 y_train = train.Survived
 train.drop('Survived', axis=1, inplace=True)
 test = pd.read_csv("./datasets/test.csv")
@@ -180,6 +222,7 @@ full.drop('PassengerId', axis=1, inplace=True)
 
 
 # print(full.describe())
+
 
 
 
@@ -193,9 +236,8 @@ ticket = ticket_extraction(full)
 cabin = cabin_extraction(full)
 siblings, parents, size, isAlone = family_extraction(full)
 
-full = pd.concat([sex,embarked,pclass,age,fare,name,ticket,cabin,siblings,parents,size,isAlone], axis=1)
-
-
+# full = pd.concat([sex,embarked,pclass,age,fare,name,ticket,cabin,siblings,parents,size,isAlone], axis=1)
+full = pd.concat([sex,embarked,pclass,age,fare,name,isAlone], axis=1)
 
 # full = pd.concat([siblings,parents,size,isAlone], axis=1)
 # sns.heatmap(full.corr(), annot=True)
@@ -205,6 +247,9 @@ full = pd.concat([sex,embarked,pclass,age,fare,name,ticket,cabin,siblings,parent
 
 # sns.heatmap(full.isnull(),yticklabels=False, cbar=False, cmap='YlGnBu')
 # plt.show()
+
+
+
 
 def get_passengerID():
     return passenger_id
