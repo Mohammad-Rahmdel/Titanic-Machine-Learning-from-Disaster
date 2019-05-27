@@ -43,10 +43,10 @@ def trainFunction(X_train, Y_train, learning_rate = 0.0001,
     n = {}
     n["0"] = n_x
     n["1"] = n_x * 4
-    n["2"] = n_x * 4
-    n["3"] = n_x * 2
-    # n["4"] = n_x * 4
-    # n["5"] = n_x * 2
+    n["2"] = n_x * 8
+    n["3"] = n_x * 8
+    n["4"] = n_x * 8
+    n["5"] = n_x * 4
 
     
     parameters = {}
@@ -95,11 +95,11 @@ def trainFunction(X_train, Y_train, learning_rate = 0.0001,
                 epoch_cost += minibatch_cost / n_minibatches
                 # epoch_cost += minibatch_cost / minibatch_cost.shape[1]
 
-                if print_cost == True:
-                    if i % 100 == 0:
-                        print ("Cost after epoch %i: %f" % (i, epoch_cost))
-                    if i % 5 == 0:
-                        costs.append(epoch_cost)
+            if print_cost == True:
+                if i % 100 == 0:
+                    print ("Cost after epoch %i: %f" % (i, epoch_cost))
+                if i % 5 == 0:
+                    costs.append(epoch_cost)
       
             
         
@@ -158,7 +158,7 @@ def train_prediction(parameters, X, Y_train, n_l = 1):
 # m = Y_train.shape[1]
 
 # # USING preprocessed_data()
-X_train, Y_train, X_test = preprocessed_data()
+X_train, Y_train, X_test, _ = preprocessed_data()
 
 X_train = np.transpose(X_train.values)
 X_test = np.transpose(X_test.values)
@@ -168,9 +168,9 @@ Y_train = np.transpose(Y_train)
 m = Y_train.shape[1]
 
 
-n_l = 4
+n_l = 6
 # TODO TODO TODO TODO TODO TODO TODO RUN MODEL HERE TODO TODO TODO TODO TODO TODO TODO TODO TODO
-parameters = trainFunction(X_train, Y_train, 0.0005, 1000, m, True, n_l, 0, 1)
+parameters = trainFunction(X_train, Y_train, 0.0006, 1000, m, True, n_l, 0, 1)
 # TODO TODO TODO TODO TODO TODO TODO PREDICT MODEL HERE TODO TODO TODO TODO TODO TODO TODO TODO TODO
 train_prediction(parameters, X_train, Y_train, n_l)
 
