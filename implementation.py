@@ -232,7 +232,7 @@ model = LogisticRegression()
 # model = DecisionTreeClassifier() # ***
 model.fit( x_train , y_train )
 
-# logisticregression_coefficients(x_train, model)
+logisticregression_coefficients(x_train, model)
 
 
 

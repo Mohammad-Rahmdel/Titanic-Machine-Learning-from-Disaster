@@ -13,17 +13,19 @@ warnings.filterwarnings('ignore')
 
 
 def sex_extraction(data):
-    sex = pd.get_dummies(data['Sex'], drop_first=False)
+    sex = pd.get_dummies(data['Sex'], drop_first=True)
     return sex
 
 
 def embarked_extraction(data):
     embarked = pd.get_dummies(data['Embarked'], drop_first=False, prefix='Embark') #fills nan with 0 0 0
+    embarked.drop('Embark_S', axis=1, inplace=True)
     return embarked
 
 
 def pclass_extraction(data):
     pclass = pd.get_dummies(data['Pclass'], drop_first=False, prefix='class')
+    pclass.drop('class_2', axis=1, inplace=True)
     
     return pclass
 
@@ -67,8 +69,10 @@ def age_extraction(data):
     ## STEP 2  DISCRETIZATION
 
     def DISCRETIZATION(age):
-        bins = (0, 5, 12, 18, 25, 35, 60, 120)
-        group_names = [0, 1, 2, 3, 4, 5, 6]
+        # bins = (0, 5, 12, 18, 25, 35, 60, 120)   #LR coefficient = -0.2
+        # group_names = [0, 1, 2, 3, 4, 5, 6]
+        bins = (0, 20, 28, 38, 80)   #LR coefficient = -0.29
+        group_names = [0, 1, 2, 3]
         age = pd.cut(age, bins, labels=group_names)
 
         return age
@@ -93,8 +97,14 @@ def fare_extraction(data):
     # bins = (-1, 5, 15, 25, 31, 90, 513)
     # group_names = [0, 1, 2, 3, 4, 5]
 
-    bins = (-1, 0, 8, 15, 31, 1000)
-    group_names = [0, 1, 2, 3, 4]
+    # bins = (-0.1, 7.91, 14.454, 31, 1000) #LR Coefficient = -0.1
+    # group_names = [0, 1, 2, 3]
+
+    # bins = (-1, 0, 8, 15, 31, 1000) #LR Coefficient = -0.04
+    # group_names = [0, 1, 2, 3, 4]
+
+    bins = (-1, 12, 31, 1000)   #LR Coefficient = -0.16
+    group_names = [0, 1, 2]
 
     fare = pd.cut(fare, bins, labels=group_names)
     return fare
@@ -108,6 +118,7 @@ def name_extraction(data):
     name = name.replace(['Mlle', 'Ms'], 'Miss')
     name = name.replace('Mme', 'Mrs')
     name = pd.get_dummies(name, drop_first=False)
+    name.drop('Miss', axis=1, inplace=True)
     return name
 
 
@@ -217,7 +228,7 @@ y_train = train.Survived
 train.drop('Survived', axis=1, inplace=True)
 test = pd.read_csv("./datasets/test.csv")
 passenger_id = test.PassengerId
-full = train.append( test , ignore_index = True )
+full = train.append(test , ignore_index = True)
 full.drop('PassengerId', axis=1, inplace=True)
 
 
