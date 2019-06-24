@@ -302,6 +302,7 @@ layout= go.Layout(
 )
 fig = go.Figure(data=data, layout=layout)
 py.iplot(fig, filename='bar-direct-labels')
+plt.show()
 
 
 
@@ -334,8 +335,11 @@ py.iplot(data, filename='labelled-heatmap')
 x_train = np.concatenate(( et_oof_train, rf_oof_train, ada_oof_train, gb_oof_train, svc_oof_train), axis=1)
 x_test = np.concatenate(( et_oof_test, rf_oof_test, ada_oof_test, gb_oof_test, svc_oof_test), axis=1)
 
+print(x_train[:10])
 # print(x_train.shape)
-# print(y2)
+# print(x_test.shape)
+
+
 
 
 gbm = xgb.XGBClassifier(
@@ -365,3 +369,4 @@ def predict(Y_hat):
     print("Test Accuracy = " + str(accuracy_score(Y, Y_hat)))
 
 predict(predictions)
+
