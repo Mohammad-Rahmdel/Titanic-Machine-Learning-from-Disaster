@@ -87,7 +87,7 @@ train = pd.read_csv("./datasets/train.csv")
 # plot_correlation_map( train )
 
 # plot_distribution( train , var = 'Age' , target = 'Survived' , row = 'Sex' )
-# plot_distribution( train , var = 'Fare' , target = 'Survived')
+plot_distribution( train , var = 'Fare' , target = 'Survived')
 # plot_categories( train , cat = 'Pclass' , target = 'Survived' )
 # sns.heatmap(train.isnull(),yticklabels=False, cbar=False, cmap='YlGnBu')
 # sns.barplot(x="Embarked", y="Survived", hue="Sex", data=train)

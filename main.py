@@ -13,6 +13,7 @@ import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # ignoring warnings
 
 from featue_engineering import preprocessed_data
+from preprocessing import after_preprocessing
 
 
 # from sklearn.exceptions import DataConversionWarning
@@ -43,10 +44,10 @@ def trainFunction(X_train, Y_train, learning_rate = 0.0001,
     n = {}
     n["0"] = n_x
     n["1"] = n_x * 4
-    n["2"] = n_x * 8
-    n["3"] = n_x * 8
-    n["4"] = n_x * 8
-    n["5"] = n_x * 4
+    n["2"] = n_x * 4
+    n["3"] = n_x * 4
+    n["4"] = n_x * 4
+    n["5"] = n_x 
 
     
     parameters = {}
@@ -158,7 +159,12 @@ def train_prediction(parameters, X, Y_train, n_l = 1):
 # m = Y_train.shape[1]
 
 # # USING preprocessed_data()
-X_train, Y_train, X_test, _ = preprocessed_data()
+
+processed_data = after_preprocessing()
+Y_train = pd.read_csv("./datasets/train.csv")['Survived']
+X_train = processed_data[0:891]
+X_test = processed_data[891:]
+# X_train, Y_train, X_test, _ = preprocessed_data()
 
 X_train = np.transpose(X_train.values)
 X_test = np.transpose(X_test.values)
@@ -170,7 +176,7 @@ m = Y_train.shape[1]
 
 n_l = 6
 # TODO TODO TODO TODO TODO TODO TODO RUN MODEL HERE TODO TODO TODO TODO TODO TODO TODO TODO TODO
-parameters = trainFunction(X_train, Y_train, 0.0006, 1000, m, True, n_l, 0, 1)
+parameters = trainFunction(X_train, Y_train, 0.0006, 10000, m, True, n_l, 0, 1)
 # TODO TODO TODO TODO TODO TODO TODO PREDICT MODEL HERE TODO TODO TODO TODO TODO TODO TODO TODO TODO
 train_prediction(parameters, X_train, Y_train, n_l)
 
@@ -200,9 +206,8 @@ def output(X_test, parameters):
 
     # print(Y_hat.shape)
     # print(Y_hat)
-    data = pd.read_csv("./datasets/answer.csv")
-    Y = np.array(data.loc[:,'survived']) 
-    Y = Y[891:]
+    Y = pd.read_csv("./datasets/labeled_test_set.csv")
+    Y = np.array(Y.loc[:,'Survived']) 
 
     g = np.subtract(Y, Y_hat)
     g = abs(g)
