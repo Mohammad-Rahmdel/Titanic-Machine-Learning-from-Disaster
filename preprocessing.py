@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
+from sklearn.preprocessing import StandardScaler
 
 
 def normalizer(x):
@@ -109,6 +110,8 @@ def ticket_handler(ticket):
 
 
 
+
+
 z = pd.DataFrame()
 z['E'] = train['Embarked']
 z['S'] = train['Sex']
@@ -193,7 +196,7 @@ def plot_distribution( df , var , target , **kwargs ):
 
 
 
-
+survived = train['Survived']
 train.drop('Survived', axis=1, inplace=True)
 test = pd.read_csv("./datasets/test.csv")
 data = train.append(test , ignore_index = True)
@@ -251,7 +254,8 @@ def age_handler(cols):
 age = data[['Age', 'Pclass']].apply(age_handler, axis=1)
 
 bins = (0, 20, 28, 38, 80)   #LR coefficient = -0.29
-group_names = [0, 1, 2, 3]
+# group_names = [0, 1, 2, 3]
+group_names = [1, 2, 3, 4]
 age = pd.cut(age, bins, labels=group_names)
 # data['age'] = age  ## Solving naming issue
 
@@ -316,13 +320,16 @@ cabin.drop('drop', axis=1, inplace=True)
 
 
 
-
-
-
 siblings = data.SibSp
 parents = data.Parch
 size = siblings + parents
-isAlone = size.map( lambda s : 1 if s == 1 else 0 )
+
+Fare_Per_Person = (data['Fare'].fillna(data.Fare.mean()))/ (size + 1)
+Age_class = data[['Age', 'Pclass']].apply(age_handler, axis=1) * data['Pclass']
+
+
+isAlone = size.map( lambda s : 'Alone' if s == 1 else 'Not Alone' )
+isAlone = pd.get_dummies(isAlone, drop_first=True)
 siblings = pd.get_dummies(siblings, drop_first=False)
 # siblings.drop([1,2,3,4,5,8], axis=1, inplace=True)
 
@@ -343,6 +350,49 @@ for index, row in family.iterrows():
         family.loc[index, 'distinction'] = last_index
 
 family['distinction'] = normalizer(family['distinction'])
+
+
+
+families = pd.DataFrame()
+families['Sex'] = data['Sex']
+families['PassengerId'] = data['PassengerId']
+families['Name'] = data['Name'].map( lambda nam: nam.split( ',' )[0])
+families['Survived'] = survived
+families['Survived'] = families['Survived'].fillna(-1)
+families['Ticket'] = data['Ticket']
+families['male_alive'] = 0
+families['male_dead'] = 0
+families['female_dead'] = 0
+families['female_alive'] = 0
+# print(families.head())
+
+
+for grp, grp_df in families.groupby(['Name','Ticket']):
+    if (len(grp_df) != 1): # a family
+        male_alive = 0
+        male_dead = 0
+        female_dead = 0
+        female_alive = 0
+        for ind, row in grp_df.iterrows():
+            if row['Survived']==1 and row['Sex']=='male':
+                male_alive=1
+            elif row['Survived']==0 and row['Sex']=='male':
+                male_dead=1
+            elif row['Survived']==1 and row['Sex']=='female':
+                female_alive=1
+            elif row['Survived']==0 and row['Sex']=='female':
+                female_dead=1
+        for ind, row in grp_df.iterrows():
+            passID = row['PassengerId']
+            if row['Sex']=='male':
+                families.loc[families['PassengerId'] == passID, 'male_alive'] = male_alive
+                families.loc[families['PassengerId'] == passID, 'male_dead'] = male_dead
+                families.loc[families['PassengerId'] == passID, 'female_dead'] = female_dead
+            else:
+                families.loc[families['PassengerId'] == passID, 'male_alive'] = male_alive
+                families.loc[families['PassengerId'] == passID, 'female_dead'] = female_dead
+                families.loc[families['PassengerId'] == passID, 'female_alive'] = female_alive
+
 
 
 z = pd.DataFrame()
@@ -372,16 +422,67 @@ my_feature2.drop('Y', axis=1, inplace=True)
 
 
 
-processed_data = pd.concat([sex,pclass,fare,name,ticket,cabin,my_feature], axis=1)
+
+############## other features #########################
+# sexx = train['Sex']
+# sexx = sexx.replace('male', 1)
+# sexx = sexx.replace('female', -1)
+# age_sex = age.astype(np.int8) * sexx
+# tmp = pd.DataFrame()
+# tmp['survived'] = survived
+# tmp['age_sex'] = age_sex
+# sns.countplot(x='survived',hue='age_sex',data=tmp)
+# plt.show()
+# print(tmp[['age_sex', 'survived']].groupby(['age_sex'], as_index=False).mean().sort_values(by='survived', ascending=False))
+
+
+sexx = data['Sex']
+sexx = sexx.replace('male', 1)
+sexx = sexx.replace('female', -1)
+age_sex = age.astype(np.int8) * sexx
+age_sex = pd.get_dummies(age_sex, drop_first=False)
+age_sex.drop([-4,-3,-2,-1,2,3,4], axis=1, inplace=True)
+
+
+processed_data = pd.concat([sex,pclass,fare,name,ticket,cabin,my_feature,age_sex], axis=1)
 processed_data['age'] = age
 processed_data['isAlone'] = isAlone
 # processed_data['distinction'] = family['distinction']
 processed_data['id'] = passenger_id
 
+
+
+Fare_Per_Person = normalizer(Fare_Per_Person)
+# processed_data['Fare_Per_Person'] = Fare_Per_Person
+Age_class = normalizer(Age_class)
+processed_data['Age_class'] = Age_class
+
+# age = data[['Age', 'Pclass']].apply(age_handler, axis=1)
+# age = normalizer(age)
+# processed_data['age'] = age
+
+# fare = data['Fare'].fillna(data.Fare.mean())
+# fare = normalizer(fare)
+# processed_data['fare'] = fare
+
+# processed_data['m_a'] = families['male_alive']
+# processed_data['m_d'] = families['male_dead'] 
+processed_data['f_d'] = families['female_dead'] 
+processed_data['f_a'] = families['female_alive'] 
+
 processed_data = processed_data.sort_values('id')
 processed_data.drop('id', axis=1, inplace=True)
 
 
+print(processed_data.head())
+
 
 def after_preprocessing():
     return processed_data
+
+
+
+
+
+
+

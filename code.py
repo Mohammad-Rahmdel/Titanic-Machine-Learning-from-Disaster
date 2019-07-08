@@ -34,12 +34,28 @@ x_test = processed_data[891:]
 
 
 
+n_neighbors = [6]
+algorithm = ['auto']
+weights = ['uniform', 'distance']
+leaf_size = list(range(1,50,5))
+hyperparams = {'algorithm': algorithm, 'weights': weights, 'leaf_size': leaf_size, 
+               'n_neighbors': n_neighbors}
+gd=GridSearchCV(estimator = KNeighborsClassifier(), param_grid = hyperparams, verbose=True, 
+                cv=10, scoring = "roc_auc")
+
+gd.fit( x_train , y_train )
+print (gd.score( x_train , y_train ))
+
+y_pred = gd.predict(x_test)
+y_test = pd.read_csv("./datasets/labeled_test_set.csv")
+y_test = np.array(y_test.loc[:,'Survived']) 
+print (gd.score( x_test , y_test ))
 
 # model = Perceptron()
 # model = SGDClassifier()
 # model = LogisticRegression()
 # model = RandomForestClassifier()
-model = KNeighborsClassifier(n_neighbors = 6)
+# model = KNeighborsClassifier(n_neighbors = 6)
 # model = LinearSVC()
 # model = DecisionTreeClassifier()
 # model = GradientBoostingClassifier()
@@ -52,15 +68,23 @@ hyperparams = {'algorithm': algorithm, 'weights': weights, 'leaf_size': leaf_siz
                'n_neighbors': n_neighbors}
 gd=GridSearchCV(estimator = KNeighborsClassifier(), param_grid = hyperparams, verbose=True, 
                 cv=10, scoring = "roc_auc")
-"""
 
-model.fit( x_train , y_train )
-print (model.score( x_train , y_train ))
+gd.fit( x_train , y_train )
+print (gd.score( x_train , y_train ))
 
-y_pred = model.predict(x_test)
+y_pred = gd.predict(x_test)
 y_test = pd.read_csv("./datasets/labeled_test_set.csv")
 y_test = np.array(y_test.loc[:,'Survived']) 
-print (model.score( x_test , y_test ))
+print (gd.score( x_test , y_test ))
+"""
+
+# model.fit( x_train , y_train )
+# print (model.score( x_train , y_train ))
+
+# y_pred = model.predict(x_test)
+# y_test = pd.read_csv("./datasets/labeled_test_set.csv")
+# y_test = np.array(y_test.loc[:,'Survived']) 
+# print (model.score( x_test , y_test ))
 
 g = np.subtract(y_test, y_pred)
 g = abs(g)
