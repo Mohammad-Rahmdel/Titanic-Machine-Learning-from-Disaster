@@ -9,6 +9,8 @@ def normalizer(x):
     m = x.shape[0]
     x = x - np.mean(x)
     x = (x * m) / (np.sum(x ** 2))
+    # x = x - np.mean(x)
+    # x = x / np.sqrt(np.sum(x**2) / len(x) - 1)
     return x
 
 
@@ -447,7 +449,7 @@ age_sex.drop([-4,-3,-2,-1,2,3,4], axis=1, inplace=True)
 processed_data = pd.concat([sex,pclass,fare,name,ticket,cabin,my_feature,age_sex], axis=1)
 processed_data['age'] = age
 processed_data['isAlone'] = isAlone
-# processed_data['distinction'] = family['distinction']
+processed_data['distinction'] = family['distinction']
 processed_data['id'] = passenger_id
 
 
@@ -474,9 +476,10 @@ processed_data = processed_data.sort_values('id')
 processed_data.drop('id', axis=1, inplace=True)
 
 
-print(processed_data.head())
+# print(processed_data.head())
 
 
+#   if __name__ == '__main__':
 def after_preprocessing():
     return processed_data
 
